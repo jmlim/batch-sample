@@ -1,0 +1,45 @@
+spring:
+  profiles:
+    active: local
+
+spring.batch.job.names: ${job.name:NONE}
+logging.level.org.springframework.batch: DEBUG
+
+---
+spring:
+  profiles: local
+  datasource:
+    hikari:
+      jdbc-url: jdbc:h2:mem:testdb;
+      username: sa
+      password:
+      driver-class-name: org.h2.Driver
+---
+spring:
+  profiles: mysql
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+  datasource:
+    url: jdbc:mariadb://localhost:3306/jmlim_test_rest
+    username: jmlim
+    password: jmlim1234
+#      driver-class-name: com.mysql.jdbc.Driver
+
+mybatis:
+  configuration:
+    call-setters-on-nulls: true
+    map-underscore-to-camel-case: true
+    lazy-loading-enabled: true
+    jdbc-type-for-null: varchar
+    cache-enabled: true
+    aggressive-lazy-loading: true
+    multiple-result-sets-enabled: true
+    use-column-label: true
+    use-generated-keys: true
+    default-executor-type: reuse
+    default-statement-timeout: 6000
+  mapper-locations: classpath:/mapper/*.xml
+  type-aliases-package: io.jmlim.sample.batch
+  executor-type: reuse

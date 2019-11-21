@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.jmlim.sample.batch.mapper.ProductOrderMapper">
+
+    <select id="findProductOrder" resultType="ProductOrder">
+        select
+            p.productCode,
+            p.productName,
+            p.productDescription,
+            od.priceEach,
+            od.quantityOrdered,
+            od.orderLineNumber
+        from products p inner join orderdetails od
+        on p.productCode = od.productCode
+        where od.orderLineNumber = #{orderLineNumber}
+    </select>
+
+    <insert id="insertProductOrder" parameterType="ProductOrder">
+        insert into product_order(product_code, product_name, product_description, price_each, quantity_ordered, order_line_number)
+        values(#{productCode},#{productName},#{productDescription},#{priceEach},#{quantityOrdered},#{orderLineNumber})
+    </insert>
+
+    <delete id="deleteProductOrder">
+        delete from product_order
+        where order_line_number = #{orderLineNumber}
+    </delete>
+
+</mapper>
