@@ -6,13 +6,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
+import org.mybatis.spring.batch.builder.MyBatisCursorItemReaderBuilder;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -37,6 +40,7 @@ public class ProductOrderJobConfiguration {
 
     /**
      * --job.name=productOrderJob version=1
+     * --job.name=productOrderJob version=1 ORDER_LINE_NUMBER=3
      * @return
      */
     @Bean
@@ -51,7 +55,7 @@ public class ProductOrderJobConfiguration {
     public Step productOrderStep() {
         return stepBuilderFactory.get("productOrderStep")
                 .<ProductOrder, ProductOrder>chunk(chunkSize)
-                .reader(productOrderMybatis())
+                .reader(productOrderMybatis(null))
                 .writer(jdbcCursorItemWriter())
                 .build();
     }
@@ -78,15 +82,31 @@ public class ProductOrderJobConfiguration {
      *
      * @return
      */
+    @StepScope
     @Bean
-    public MyBatisCursorItemReader productOrderMybatis() {
-        final MyBatisCursorItemReader<ProductOrder> reader = new MyBatisCursorItemReader<>();
+    public MyBatisCursorItemReader productOrderMybatis(@Value("#{@paramValues}")
+                                                                   Map<String, Object> paramValues) {
+        /*final MyBatisCursorItemReader<ProductOrder> reader = new MyBatisCursorItemReader<>();
         reader.setSqlSessionFactory(sqlSessionFactory);
         reader.setQueryId("io.jmlim.sample.batch.mapper.ProductOrderMapper.findProductOrder");
         Map<String, Object> objectObjectHashMap = new HashMap<>();
         objectObjectHashMap.put("orderLineNumber", "1");
         reader.setParameterValues(objectObjectHashMap);
-        return reader;
+        return reader;*/
+        return new MyBatisCursorItemReaderBuilder<ProductOrder>()
+                .sqlSessionFactory(sqlSessionFactory)
+                .queryId("io.jmlim.sample.batch.mapper.ProductOrderMapper.findProductOrder")
+                .parameterValues(paramValues)
+                .build();
+    }
+
+    @StepScope
+    @Bean
+    public Map<String, Object> paramValues(
+            @Value("#{jobParameters[ORDER_LINE_NUMBER]}") Integer orderLineNumber) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("orderLineNumber", orderLineNumber);
+        return map;
     }
 
   /*  @Bean
